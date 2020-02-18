@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pgm.bbs.mapper.RepleMapper">
+	<select id="getList" resultType="com.pgm.bbs.dto.RepleVO">
+		select * from reple where bno=#{bno}
+	</select>
+	<select id="getReple" resultType="com.pgm.bbs.dto.RepleVO">
+		select * from reple where rno=#{rno}
+	</select>
+	
+	<insert id="insert">
+		insert into reple(rno,content,writer,bno)
+		values(reple_seq.nextval, #{content},#{writer},#{bno})
+	</insert>
+	
+	<delete id="delete">
+		delete from reple where rno=#{rno}
+	</delete>
+</mapper>

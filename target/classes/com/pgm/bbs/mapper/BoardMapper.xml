@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pgm.bbs.mapper.BoardMapper">
+
+	<sql id="criteria">
+		<trim prefix="(" suffix=") AND " prefixOverrides="OR">
+			<foreach item='type' collection="typeArr">
+				<trim prefix="OR">
+					<choose>
+						<when test="type == 'T'.toString()">
+							title like '%'||#{keyword}||'%'
+						</when>
+						<when test="type == 'C'.toString()">
+							content like '%'||#{keyword}||'%'
+						</when>
+						<when test="type == 'W'.toString()">
+							writer like '%'||#{keyword}||'%'
+						</when>
+					</choose>
+				</trim>
+			</foreach>
+		</trim>
+	</sql>
+
+  <select id="getList" resultType="com.pgm.bbs.dto.BoardVO">
+    <![CDATA[
+    select * from board where bno>0
+    ]]>
+  </select>
+  <select id="mylistPaging" resultType="com.pgm.bbs.dto.BoardVO">
+    <![CDATA[
+    select * from board 
+    where bno>0 
+    order by bno desc limit (#{page}-1)*#{perPageNum},10
+    ]]>
+  </select>
+  
+  <select id="oraListPaging" resultType="com.pgm.bbs.dto.BoardVO">
+  <![CDATA[
+  	select * from 
+  	(select /*+INDEX_DESC(board board_pk) */
+  	rownum rn,bno,title,content,writer,regdate,readcount,replycount
+  	from board where
+  	]]>
+  	
+  	<include refid="criteria"/>
+  	
+  	<![CDATA[
+  	rownum <= #{page}*#{perPageNum} order by bno desc)
+  	where rn > (#{page}-1)*#{perPageNum}
+	]]>
+  </select>
+ 
+  
+  <select id="totalCount" resultType="int">
+    <![CDATA[
+    select count(*) from board where
+    ]]>
+    
+    <include refid="criteria"/>
+    
+    <![CDATA[
+    bno>0 
+    ]]>
+  </select>
+  <insert id="myInsert">
+  	insert into board(title, content, writer) 
+  	values(#{title},#{content},#{writer})
+  </insert>
+  
+  <insert id="insert">
+  	insert into board(bno, title, content, writer) 
+  	values(board_seq.nextval, #{title},#{content},#{writer})
+  </insert>
+  <insert id="insertSelectKey">
+  	<selectKey keyProperty="bno" order="BEFORE" resultType="int">
+  		select board_seq.nextval from dual
+  	</selectKey>
+  	insert into board(bno, title, content, writer)
+  	values(#{bno}, #{title},#{content},#{writer})
+  </insert>
+  <select id="read" resultType="com.pgm.bbs.dto.BoardVO">
+  	<![CDATA[
+  	select * from board where bno=#{bno}
+  	]]>
+  </select>
+  <update id="update">
+  	update board set title=#{title}, content=#{content}
+  	where bno=#{bno}
+  </update>
+  <delete id="delete">
+  	delete from board where bno=#{bno}
+  </delete>
+  <update id="updateReadCount">
+  	update board set readcount=readCount + 1 where bno=#{bno}
+  </update>
+  
+  <update id="updateRepleCount">
+  	update board set replycount=replycount + #{amount} where bno=#{bno}
+  </update>
+</mapper>
